@@ -39,6 +39,9 @@ public class OptifineFixer {
 		//net/minecraft/client/particle/ParticleManager
 		skipClass("class_702"); //Skip a seemingly pointless patch to register particles by register name rather than ID
 
+		//net/minecraft/client/render/WorldRenderer
+		registerFix("class_761", new WorldRendererFix());
+
 		//net/minecraft/client/render/model/json/ModelOverrideList
 		registerFix("class_806", new ModelOverrideListFix());
 
