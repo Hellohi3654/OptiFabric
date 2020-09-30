@@ -19,6 +19,20 @@ import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.lang3.Validate;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Opcodes;
+
+import com.google.common.collect.MoreCollectors;
+
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.mapping.tree.FieldDef;
+
+import me.modmuss50.optifabric.util.RemappingUtils;
+
 public class ClassCache {
 	private final byte[] hash;
 	private final Map<String, byte[]> classes = new HashMap<>();
@@ -64,7 +78,8 @@ public class ClassCache {
 		try (DataInputStream dis = new DataInputStream(new GZIPInputStream(new FileInputStream(input)))) {
 			char formatRevision = dis.readChar(); //Check the format of the file
 			boolean isFormatA = formatRevision == 'A';
-			if (!isFormatA && formatRevision != 'B') return new ClassCache(null);
+			boolean isFormatB = formatRevision == 'B';
+			if (!isFormatA && !isFormatB && formatRevision != 'C') return new ClassCache(null);
 
 			long expectedCRC = dis.readLong();
 
@@ -96,6 +111,34 @@ public class ClassCache {
 				}
 			}
 
+			if (isFormatA || isFormatB) {
+				String particleManager = RemappingUtils.getClassName("class_702");
+				byte[] particleManagerContents = classCache.popClass(particleManager);
+
+				if (particleManagerContents != null) {
+					FieldDef factories = FabricLauncherBase.getLauncher().getMappingConfiguration().getMappings()
+							.getClasses().stream().filter(clazz -> "net/minecraft/class_702".equals(clazz.getName("intermediary")))
+							.flatMap(clazz -> clazz.getFields().stream()).filter(field -> "field_3835".equals(field.getName("intermediary")))
+							.collect(MoreCollectors.onlyElement());
+					String namespace = FabricLoader.getInstance().getMappingResolver().getCurrentRuntimeNamespace();
+
+					ClassReader reader = new ClassReader(particleManagerContents);
+					ClassWriter writer = new ClassWriter(reader, 0);
+
+					reader.accept(new ClassVisitor(Opcodes.ASM8, writer) {
+						private final String oldName = factories.getName("official");
+						private final String newName = factories.getName(namespace);
+
+						@Override
+						public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+							return super.visitField(access, oldName.equals(name) && "Ljava/util/Map;".equals(descriptor) ? newName : name, descriptor, signature, value);
+						}
+					}, 0);
+
+					classCache.addClass(particleManager, writer.toByteArray());
+				}
+			}
+
 			return classCache;
 		}
 	}
@@ -106,7 +149,7 @@ public class ClassCache {
 		}
 
 		try (DataOutputStream dos = new DataOutputStream(new GZIPOutputStream(new FileOutputStream(output)))) {
-			dos.writeChar('B'); //Format version
+			dos.writeChar('C'); //Format version
 			dos.writeLong(calculateCRC()); //Expected CRC to get from fully reading
 
 			//Write the hash

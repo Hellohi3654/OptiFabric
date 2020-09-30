@@ -14,7 +14,7 @@ public class RemappingUtils {
 	private static final Pattern CLASS_FINDER = Pattern.compile("Lnet\\/minecraft\\/([^;]+);");
 
 	public static String getClassName(String className) {
-		return fromIntermediaryDot(className).replaceAll("\\.", "/");
+		return fromIntermediaryDot(className).replace('.', '/');
 	}
 
 	private static String fromIntermediaryDot(String className) {
@@ -38,5 +38,9 @@ public class RemappingUtils {
 		}
 
 		return matcher.appendTail(buf).toString();
+	}
+
+	public static String mapFieldName(String owner, String name, String desc) {
+		return RESOLVER.mapFieldName(INTERMEDIARY, "net.minecraft.".concat(owner), name, desc);
 	}
 }

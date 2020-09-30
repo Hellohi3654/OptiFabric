@@ -37,7 +37,7 @@ public class OptifineFixer {
 		registerFix("class_1059", new SpriteAtlasTextureFix());
 
 		//net/minecraft/client/particle/ParticleManager
-		skipClass("class_702"); //Skip a seemingly pointless patch to register particles by register name rather than ID
+		registerFix("class_702", new ParticleManagerFix());
 
 		//net/minecraft/client/render/WorldRenderer
 		registerFix("class_761", new WorldRendererFix());
@@ -55,6 +55,7 @@ public class OptifineFixer {
 		classFixes.computeIfAbsent(RemappingUtils.getClassName(className), s -> new ArrayList<>()).add(classFixer);
 	}
 
+	@SuppressWarnings("unused") //Might be useful in future
 	private void skipClass(String className) {
 		skippedClass.add(RemappingUtils.getClassName(className));
 	}

@@ -157,6 +157,11 @@ public class OptifineSetup {
 		ClassDef builtChunk = nameToClass.get("net/minecraft/class_846$class_851");
 		extraFields.put(new Member(rebuildTask.getName(from), "this$1", 'L' + builtChunk.getName(from) + ';'), "field_20839");
 
+		ClassDef particleManager = nameToClass.get("net/minecraft/class_702");
+		particleManager.getFields().stream().filter(field -> "field_3835".equals(field.getName("intermediary"))).forEach(field -> {
+			extraFields.put(new Member(particleManager.getName(from), field.getName(from), "Ljava/util/Map;"), field.getName(to));
+		});
+
 		//In dev
 		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
 			ClassDef option = nameToClass.get("net/minecraft/class_316");
