@@ -32,8 +32,8 @@
     "fabric-renderer-indigo:force_compatibility" : true
   },
   "depends": {
-    "fabricloader": ">=0.8.8",
-    "minecraft": ["1.16.1", "1.16.2", "1.16.3"],
+    "fabricloader": ">=0.8.0",
+    "minecraft": ["1.16.1", "1.16.2", "1.16.3", "1.16.4"],
     "mm": ">=2.0"
   },
   "conflicts": {

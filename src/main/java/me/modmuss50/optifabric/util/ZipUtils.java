@@ -14,7 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 public class ZipUtils {
-	public interface ZipTranformer {
+	public interface ZipTransformer {
 		boolean keep(ZipFile zip, ZipEntry entry) throws IOException;
 	}
 
@@ -24,7 +24,7 @@ public class ZipUtils {
 	 * @param zip The zip file to visit the contents of
 	 * @param visitor A visitor to receive the contents, returning {@code false} will immediately end visiting
 	 */
-	public static void iterateContents(File zip, ZipTranformer visitor) {
+	public static void iterateContents(File zip, ZipTransformer visitor) {
 		try (ZipFile origin = new ZipFile(zip)) {
 			for (Enumeration<? extends ZipEntry> it = origin.entries(); it.hasMoreElements();) {
 				if (!visitor.keep(origin, it.nextElement())) {
@@ -68,7 +68,7 @@ public class ZipUtils {
 	 * @param zip The zip file to filter the contents of
 	 * @param filter A filter of the contents, returning {@code false} will remove the given entry
 	 */
-	public static void transformInPlace(File zip, ZipTranformer filter) {
+	public static void transformInPlace(File zip, ZipTransformer filter) {
 		File tempZip = null;
 		try {
 			tempZip = File.createTempFile("optifabric", ".zip");
@@ -90,7 +90,7 @@ public class ZipUtils {
 	 * @param filter A filter of the contents, returning {@code false} will remove the given entry
 	 * @param zipDestination The location of the filtered zip file
 	 */
-	public static void transform(File zipOrigin, ZipTranformer filter, File zipDestination) {
+	public static void transform(File zipOrigin, ZipTransformer filter, File zipDestination) {
 		try {
 			transform(zipOrigin, ZipFile.OPEN_READ, filter, zipDestination);
 		} catch (IOException e) {
@@ -98,7 +98,7 @@ public class ZipUtils {
 		}
 	}
 
-	private static void transform(File zipOrigin, int originFlags, ZipTranformer filter, File zipDestination) throws IOException {
+	private static void transform(File zipOrigin, int originFlags, ZipTransformer filter, File zipDestination) throws IOException {
 		try (ZipFile origin = new ZipFile(zipOrigin, originFlags); ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipDestination)))) {
 			for (Enumeration<? extends ZipEntry> it = origin.entries(); it.hasMoreElements();) {
 				ZipEntry entry = it.nextElement();

@@ -1,10 +1,11 @@
 package me.modmuss50.optifabric.mod;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import com.google.common.base.MoreObjects;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -17,24 +18,19 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
-import net.fabricmc.loader.util.version.VersionParsingException;
 
-import com.chocohead.mm.api.ClassTinkerers;
-
+import me.modmuss50.optifabric.mod.OptifineVersion.JarType;
 import me.modmuss50.optifabric.patcher.ClassCache;
 import me.modmuss50.optifabric.util.RemappingUtils;
 
-public class OptifabricSetup implements Runnable {
+import com.chocohead.mm.api.ClassTinkerers;
 
-	public static final String OPTIFABRIC_INCOMPATIBLE = "optifabric:incompatible";
+public class OptifabricSetup implements Runnable {
 	public static File optifineRuntimeJar = null;
 
 	//This is called early on to allow us to get the transformers in beofore minecraft starts
 	@Override
 	public void run() {
-		if(!validateLoaderVersion()) return;
-		if(!validateMods()) return;
-
 		OptifineInjector injector;
 		try {
 			Pair<File, ClassCache> runtime = OptifineSetup.getRuntime();
@@ -46,14 +42,14 @@ public class OptifabricSetup implements Runnable {
 			injector = new OptifineInjector(runtime.getRight());
 			injector.setup();
 		} catch (Throwable e) {
-			if(!OptifabricError.hasError()){
-				OptifineVersion.jarType = OptifineVersion.JarType.INCOMPATIBE;
+			if (!OptifabricError.hasError()) {
+				OptifineVersion.jarType = JarType.INTERNAL_ERROR;
 				OptifabricError.setError("Failed to load optifine, check the log for more info \n\n " + e.getMessage());
 			}
 			throw new RuntimeException("Failed to setup optifine", e);
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("fabric-renderer-indigo")) {
+		if (isPresent("fabric-renderer-indigo")) {
 			Mixins.addConfiguration("optifabric.compat.indigo.mixins.json");
 		}
 
@@ -63,15 +59,15 @@ public class OptifabricSetup implements Runnable {
 
 		Mixins.addConfiguration("optifabric.optifine.mixins.json");
 
-		if(FabricLoader.getInstance().isModLoaded("cloth-client-events-v0")){
+		if (isPresent("cloth-client-events-v0")) {
 			Mixins.addConfiguration("optifabric.compat.cloth.mixins.json");
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("clothesline")) {
+		if (isPresent("clothesline")) {
 			Mixins.addConfiguration("optifabric.compat.clothesline.mixins.json");
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("trumpet-skeleton")) {
+		if (isPresent("trumpet-skeleton")) {
 			Mixins.addConfiguration("optifabric.compat.trumpet-skeleton.mixins.json");
 		}
 
@@ -83,24 +79,28 @@ public class OptifabricSetup implements Runnable {
 			Mixins.addConfiguration("optifabric.compat.now-playing.mixins.json");
 		}
 
-		if (isPresent("origins", ">=1.16-0.2.0")) {//ElytraFeatureRenderer
-			injector.predictFuture(RemappingUtils.getClassName("class_979")).ifPresent(node -> {//ItemStack, LivingEntity
-				String desc = RemappingUtils.mapMethodDescriptor("(Lnet/minecraft/class_1799;Lnet/minecraft/class_1309;)Z");
+		if (isPresent("origins", mod -> compareVersions(Pattern.compile("^1\\.16(\\.\\d)?-").matcher(mod.getVersion().getFriendlyString()).find() ? ">=1.16-0.2.0" : ">=0.4.1", mod))) {
+			if (isPresent("origins", mod -> !Pattern.compile("^1\\.16(\\.\\d)?-").matcher(mod.getVersion().getFriendlyString()).find() || compareVersions(">=1.16.3-0.4.0", mod))) {
+				Mixins.addConfiguration("optifabric.compat.origins.mixins.json");
+			}
+
+			injector.predictFuture(RemappingUtils.getClassName("class_979")).ifPresent(node -> {//ElytraFeatureRenderer
+				String desc = RemappingUtils.mapMethodDescriptor("(Lnet/minecraft/class_1799;Lnet/minecraft/class_1309;)Z"); //ItemStack, LivingEntity
 
 				for (MethodNode method : node.methods) {
 					if ("shouldRender".equals(method.name) && desc.equals(method.desc)) {
-						Mixins.addConfiguration("optifabric.compat.origins.mixins.json");
+						Mixins.addConfiguration("optifabric.compat.origins.extra-mixins.json");
 						break;
 					}
 				}
 			});
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("staffofbuilding")) {
+		if (isPresent("staffofbuilding")) {
 			Mixins.addConfiguration("optifabric.compat.staffofbuilding.mixins.json");
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("sandwichable")) {
+		if (isPresent("sandwichable")) {
 			Mixins.addConfiguration("optifabric.compat.sandwichable.mixins.json");
 		}
 
@@ -108,7 +108,7 @@ public class OptifabricSetup implements Runnable {
 			Mixins.addConfiguration("optifabric.compat.astromine.mixins.json");
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("carpet")) {
+		if (isPresent("carpet")) {
 			Mixins.addConfiguration("optifabric.compat.carpet.mixins.json");
 
 			injector.predictFuture(RemappingUtils.getClassName("class_702")).ifPresent(node -> {//ParticleManager
@@ -125,89 +125,73 @@ public class OptifabricSetup implements Runnable {
 			});
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("hctm-base")) {
+		if (isPresent("hctm-base")) {
 			Mixins.addConfiguration("optifabric.compat.hctm.mixins.json");
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("mubble")) {
+		if (isPresent("mubble", "<4.0-pre5")) {
 			Mixins.addConfiguration("optifabric.compat.mubble.mixins.json");
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("phormat")) {
+		if (isPresent("dawn", ">=1.3 <=1.4")) {
+			Mixins.addConfiguration("optifabric.compat.dawn.older-mixins.json");
+		} else if (isPresent("dawn", ">1.4 <1.5")) {
+			Mixins.addConfiguration("optifabric.compat.dawn.old-mixins.json");
+		} else if (isPresent("dawn", ">=1.5")) {
+			Mixins.addConfiguration("optifabric.compat.dawn.mixins.json");
+		}
+
+		if (isPresent("phormat")) {
 			Mixins.addConfiguration("optifabric.compat.phormat.mixins.json");
 		}
 
-		if (FabricLoader.getInstance().isModLoaded("chat_heads")) {
+		if (isPresent("chat_heads", "<0.2")) {
 			Mixins.addConfiguration("optifabric.compat.chat-heads.mixins.json");
 		}
+
+		if (isPresent("mmorpg")) {
+			Mixins.addConfiguration("optifabric.compat.age-of-exile.mixins.json");
+		}
+
+		if (isPresent("charm", ">=2.0 <2.1")) {
+			Mixins.addConfiguration("optifabric.compat.charm-old.mixins.json");
+		} else if (isPresent("charm", ">=2.1")) {
+			Mixins.addConfiguration("optifabric.compat.charm.mixins.json");
+		}
+
+		if (isPresent("voxelmap")) {
+			Mixins.addConfiguration("optifabric.compat.voxelmap.mixins.json");
+		}
 	}
 
-	private boolean validateMods() {
-		List<ModMetadata> incompatibleMods = new ArrayList<>();
-		for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
-			ModMetadata metadata = container.getMetadata();
-			if(metadata.containsCustomValue(OPTIFABRIC_INCOMPATIBLE)) {
-				incompatibleMods.add(metadata);
-			}
-		}
-		if (!incompatibleMods.isEmpty()) {
-			OptifineVersion.jarType = OptifineVersion.JarType.INCOMPATIBE;
-			StringBuilder errorMessage = new StringBuilder("One or more mods have stated they are incompatible with OptiFabric\nPlease remove OptiFabric or the following mods:\n");
-			for (ModMetadata metadata : incompatibleMods) {
-				errorMessage.append(metadata.getName())
-						.append(" (")
-						.append(metadata.getId())
-						.append(")\n");
-			}
-			OptifabricError.setError(errorMessage.toString());
-		}
-		return incompatibleMods.isEmpty();
+	private static boolean isPresent(String modID) {
+		return FabricLoader.getInstance().isModLoaded(modID);
 	}
 
-	private boolean validateLoaderVersion() {
+	private static boolean isPresent(String modID, String versionRange) {
+		return isPresent(modID, modMetadata -> compareVersions(versionRange, modMetadata));
+	}
+
+	private static boolean isPresent(String modID, Predicate<ModMetadata> extraChecks) {
+		if (!isPresent(modID)) return false;
+
+		Optional<ModContainer> modContainer = FabricLoader.getInstance().getModContainer(modID);
+		ModMetadata modMetadata = modContainer.map(ModContainer::getMetadata).orElseThrow(() ->
+			new RuntimeException("Failed to get mod container for " + modID + ", something has broke badly.")
+		);
+
+		return extraChecks.test(modMetadata);
+	}
+
+	private static boolean compareVersions(String versionRange, ModMetadata mod) {
 		try {
-			if (!isVersionValid("fabricloader", ">=0.7.0")) {
-				if(!OptifabricError.hasError()){
-					OptifineVersion.jarType = OptifineVersion.JarType.INCOMPATIBE;
-					OptifabricError.setError("You are using an outdated version of Fabric Loader, please update!\n\nRe-run the installer, or update via your launcher. See the link for help!", "https://fabricmc.net/wiki/install");
-					OptifabricError.setHelpButtonText("Installation Instructions");
-					return false;
-				}
-			}
-		} catch (Throwable e){
-			if(!OptifabricError.hasError()){
-				OptifineVersion.jarType = OptifineVersion.JarType.INCOMPATIBE;
-				OptifabricError.setError("Failed to load optifine, check the log for more info \n\n " + e.getMessage());
-			}
-			throw new RuntimeException("Failed to setup optifine", e);
-		}
-		return true;
-	}
-
-	private boolean isPresent(String modID, String versionRange) {
-		try {
-			return FabricLoader.getInstance().isModLoaded(modID) && isVersionValid(modID, versionRange);
-		} catch (VersionParsingException e) {
-			System.err.println("Error comparing the version for ".concat(modID));
+			Predicate<SemanticVersionImpl> predicate = SemanticVersionPredicateParser.create(versionRange);
+			SemanticVersionImpl version = new SemanticVersionImpl(mod.getVersion().getFriendlyString(), false);
+			return predicate.test(version);
+		} catch (@SuppressWarnings("deprecation") net.fabricmc.loader.util.version.VersionParsingException e) {
+			System.err.println("Error comparing the version for ".concat(MoreObjects.firstNonNull(mod.getName(), mod.getId())));
 			e.printStackTrace();
-			return false; //Let's just gamble on the version not being valid so also not being a problem
+			return false; //Let's just gamble on the version not being valid also not being a problem
 		}
 	}
-
-	private boolean isVersionValid(String modID, String validVersion) throws VersionParsingException {
-		ModMetadata modMetadata = getModMetaData(modID);
-		if(modMetadata == null) {
-			throw new RuntimeException(String.format("Failed to get mod container for %s, something has broke badly.", modID));
-		}
-
-		Predicate<SemanticVersionImpl> predicate = SemanticVersionPredicateParser.create(validVersion);
-		SemanticVersionImpl version = new SemanticVersionImpl(modMetadata.getVersion().getFriendlyString(), false);
-		return predicate.test(version);
-	}
-
-	private ModMetadata getModMetaData(String modId) {
-		Optional<ModContainer> modContainer = FabricLoader.getInstance().getModContainer(modId);
-		return modContainer.map(ModContainer::getMetadata).orElse(null);
-	}
-
 }

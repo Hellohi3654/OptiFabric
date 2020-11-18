@@ -3,7 +3,6 @@
 	"package": "me.modmuss50.optifabric.compat.staffofbuilding.mixin",
 	"plugin": "me.modmuss50.optifabric.compat.InterceptingMixinPlugin",
 	"mixins": [
-		"WorldRendererMixin",
-		"WorldRendererFix"
+		"WorldRendererMixin"
 	]
 }

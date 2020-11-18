@@ -69,7 +69,7 @@ public class OptifineSetup {
 			return Pair.of(remappedJar, classCache);
 		}
 
-		if (OptifineVersion.jarType == OptifineVersion.JarType.OPTFINE_INSTALLER) {
+		if (OptifineVersion.jarType == OptifineVersion.JarType.OPTIFINE_INSTALLER) {
 			File optifineMod = new File(versionDir, "/Optifine-mod.jar");
 			if (!optifineMod.exists()) {
 				OptifineInstaller.extract(optifineModJar, optifineMod, getMinecraftJar().toFile());
@@ -118,7 +118,7 @@ public class OptifineSetup {
 			lambadaFixJar.delete();
 			jarOfTheFree.delete();
 
-			if(OptifineVersion.jarType == OptifineVersion.JarType.OPTFINE_INSTALLER){
+			if(OptifineVersion.jarType == OptifineVersion.JarType.OPTIFINE_INSTALLER){
 				optifineModJar.delete();
 			}
 		}

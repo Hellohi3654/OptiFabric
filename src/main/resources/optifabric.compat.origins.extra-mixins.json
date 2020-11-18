@@ -3,6 +3,6 @@
 	"package": "me.modmuss50.optifabric.compat.origins.mixin",
 	"plugin": "me.modmuss50.optifabric.compat.origins.OriginsMixinPlugin",
 	"mixins": [
-		"BackgroundRendererMixin"
+		"ElytraFeatureRendererMixin"
 	]
 }

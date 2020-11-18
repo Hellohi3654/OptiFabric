@@ -11,7 +11,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath 'com.github.Chocohead.Fabric-Loom:fabric-loom:c180d3f'
+		classpath 'com.github.Chocohead.Fabric-Loom:fabric-loom:c290f8f'
 	}
 }
 
@@ -39,9 +39,10 @@ repositories {
 	}
 	maven { url 'https://maven.blamejared.com' }
 	maven { url 'https://dl.bintray.com/earthcomputer/mods' }
-	maven { url 'https://modmaven.k-4u.nl/artifactory/local-releases/' }
+	maven { url 'http://modmaven.k-4u.nl/artifactory/local-releases/' }
 	maven { url 'https://mod-buildcraft.com/maven' }
 	maven { url 'https://maven.dblsaiko.net' }
+	maven { url 'https://dl.bintray.com/adriantodt/maven' }
 	maven { url 'https://www.cursemaven.com' }
 	maven { url 'https://jitpack.io' }
 }
@@ -83,7 +84,7 @@ dependencies {
 	modRuntime 'net.earthcomputer:multiconnect:1.3.19:api'
 	modRuntime 'net.earthcomputer:multiconnect:1.3.19:slim'
 	modRuntime 'curse.maven:now-playing:3041887'
-	modRuntime ('com.github.apace100:origins-fabric:0.3.7') {
+	modRuntime ('com.github.apace100:origins-fabric:0.4.1') {
 		exclude(group: "net.fabricmc")
 		exclude(group: "net.fabricmc.fabric-api")
 	}
@@ -104,11 +105,11 @@ dependencies {
 		exclude(group: "net.fabricmc")
 		exclude(group: "net.fabricmc.fabric-api")
 	}
-	modRuntime ('com.github.DawnTeamMC:DawnAPI:1.1') {
+	modRuntime ('com.github.DawnTeamMC:DawnAPI:1.4.1') {
 		exclude(group: "net.fabricmc")
 		exclude(group: "net.fabricmc.fabric-api")
 	}
-	modRuntime ('com.github.DawnTeamMC:Mubble:95efa5b') {
+	modRuntime ('com.github.DawnTeamMC:Mubble:0ccbea2') {
 		exclude(group: "net.fabricmc")
 		exclude(group: "net.fabricmc.fabric-api")
 	}

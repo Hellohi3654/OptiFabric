@@ -1,6 +1,5 @@
 package me.modmuss50.optifabric.compat;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,17 +14,14 @@ import org.objectweb.asm.tree.MethodNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import org.spongepowered.asm.mixin.injection.Surrogate;
 import org.spongepowered.asm.mixin.transformer.ClassInfo.Method;
-import org.spongepowered.asm.service.MixinService;
 import org.spongepowered.asm.util.Annotations;
-
-import net.fabricmc.loader.api.FabricLoader;
 
 import me.modmuss50.optifabric.util.MixinFinder;
 import me.modmuss50.optifabric.util.MixinFinder.Mixin;
 import me.modmuss50.optifabric.util.RemappingUtils;
 
 public class InterceptingMixinPlugin extends EmptyMixinPlugin {
-	@Override
+	/*@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 		try {
 			ClassNode mixin = MixinService.getService().getBytecodeProvider().getClassNode(mixinClassName, false);
@@ -35,7 +31,7 @@ public class InterceptingMixinPlugin extends EmptyMixinPlugin {
 			e.printStackTrace();
 			return true; //Possibly should be returning false if it can't be found?
 		}
-	}
+	}*/
 
 	@Override
 	public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {

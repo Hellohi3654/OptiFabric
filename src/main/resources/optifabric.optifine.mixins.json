@@ -4,6 +4,10 @@
 	"mixins": [
 		"MixinReflectorClass",
 		"MixinOptifineConfig",
-		"MixinDefaultResourcePack"
+		"MixinDefaultResourcePack",
+		"ShadersMixin",
+		"VideoOptionsScreenMixin",
+		"Config",
+		"SMCLog"
 	]
 }
