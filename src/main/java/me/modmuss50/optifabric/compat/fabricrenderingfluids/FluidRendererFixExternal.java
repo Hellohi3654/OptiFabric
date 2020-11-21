@@ -15,6 +15,7 @@ public class FluidRendererFixExternal {
 	}
 
 	public static boolean needsOptiFine(Fluid fluid) {
-		return fluid == Fluids.WATER && Objects.requireNonNull(FluidRenderHandlerRegistry.INSTANCE.get(fluid), "Can't find render handler for water?").getClass().getName().startsWith("net.fabricmc.fabric.");
+		return (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) && 
+				Objects.requireNonNull(FluidRenderHandlerRegistry.INSTANCE.get(fluid), "Can't find render handler for water?").getClass().getName().startsWith("net.fabricmc.fabric.");
 	}
 }

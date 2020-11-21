@@ -24,9 +24,6 @@ public class OptifineFixer {
 		//net/minecraft/client/render/chunk/ChunkBuilder$BuiltChunk
 		registerFix("class_846$class_851$class_4578", new ChunkRendererFix());
 
-		//net/minecraft/client/render/block/BlockModelRenderer
-		registerFix("class_778", new BlockModelRendererFix());
-
 		//net/minecraft/client/render/block/BlockModelRenderer$AmbientOcclusionCalculator
 		registerFix("class_778$class_780", new AmbientOcclusionCalculatorFix());
 
