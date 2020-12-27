@@ -49,6 +49,10 @@ public class OptifabricSetup implements Runnable {
 			throw new RuntimeException("Failed to setup optifine", e);
 		}
 
+		if (isPresent("fabric-renderer-api-v1")) {
+			Mixins.addConfiguration("optifabric.compat.fabric-renderer-api.mixins.json");
+		}
+
 		if (isPresent("fabric-renderer-indigo")) {
 			Mixins.addConfiguration("optifabric.compat.indigo.mixins.json");
 		}
@@ -165,6 +169,18 @@ public class OptifabricSetup implements Runnable {
 
 		if (isPresent("appliedenergistics2")) {
 			Mixins.addConfiguration("optifabric.compat.ae2.mixins.json");
+		}
+
+		if (isPresent("images", "=0.3.0")) {
+			Mixins.addConfiguration("optifabric.compat.images-old.mixins.json");
+		} else if (isPresent("images", ">=0.3.1")) {
+			Mixins.addConfiguration("optifabric.compat.images.mixins.json");
+		}
+
+		if (isPresent("architectury", ">=1.0.20")) {
+			Mixins.addConfiguration("optifabric.compat.architectury-B.mixins.json");
+		} else if (isPresent("architectury", ">=1.0.4")) {
+			Mixins.addConfiguration("optifabric.compat.architectury-A.mixins.json");
 		}
 	}
 
